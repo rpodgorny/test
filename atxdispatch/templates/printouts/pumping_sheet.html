@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ tran("{pumping_sheet}") }}, #{{record.auto_number}}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="container" id="main">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+        <div class="row mb-2 mt-3">
+
+        <div class="col-6">
+          <b>{{ setup.company_name }}</b>
+          <div class="small">
+              {{ setup.company_address | hide_none }}<br>
+              {{ setup.company_zip | hide_none }}
+              {{ setup.company_city | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ setup.company_idnum | hide_none }}
+              {{ tran("{Vat ID}") }}: {{ setup.company_vat_idnum | hide_none }}<br>
+              {{ setup.company_legal | hide_none }}
+          </div>
+        </div>
+
+        <div class="col-6 text-right">
+            <h3>{{ tran("{pumping_sheet}") }}, #{{record.auto_number}}</h3>
+        </div>
+
+        </div>
+
+        <!-- Production facility -->
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="small">
+                  {{ setup.facility_name | hide_none }}<br>
+                  {{ setup.facility_address | hide_none }}<br>
+                  {{ setup.facility_zip | hide_none }}
+                  {{ setup.facility_city | hide_none }}<br>
+                  {{ setup.facility_code | hide_none }}
+              </div>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{certification}") }}</b>
+              <div style="white-space: pre-wrap">{{ setup.certification_text | hide_none }}</div>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{t_human}") }}</b><br>
+              {{record.t | customized_timestamp}}
+          </div>
+        </div>
+
+        <!-- Customer -->
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{customer}") }}</b><br>
+              {{ record.customer_name | hide_none }}<br>
+              {{ record.customer_address | hide_none }}<br>
+              {{ record.customer_zip | hide_none }} {{ record.customer_city | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ record.customer_company_idnum | hide_none }},
+              {{ tran("{Vat ID}") }}: {{ record.customer_vat_idnum | hide_none }}
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{construction_site}") }}</b><br>
+              {{record.construction_site_name | hide_none }}<br>
+              {{record.construction_site_address | hide_none }}<br>
+              {{record.construction_site_zip | hide_none }} {{record.construction_site_city | hide_none }}<br>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{pump}") }}</b><br>
+              {{ tran("{pump_registration_number}") }}: {{ record.pump_registration_number }}<br>
+              {{ record.pump_pump_type }}
+              <div class="small">
+                  <b>{{ tran("{driver}") }}</b><br>
+                 {{ record.pump_driver | hide_none }}
+                 {{ record.pump_driver_contact | hide_none }}
+              </div>
+          </div>
+        </div>
+
+        <!-- Data to be filled in by hand -->
+        <table style="width:100%;" class="table table-bordered small mt-4">
+            <tr>
+                <td style="padding: 5px;">{{ tran("{amount}") }}</td>
+                <td style="padding: 5px;">{{ tran("{paid_in_cash}") }}</td>
+                <td colspan=2 style="padding: 5px;">{{ tran("{different_tariff_note}") }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 5px;"><br><br></td>
+                <td style="padding: 5px;"></td>
+                <td colspan=2 style="padding: 5px;"></td>
+            </tr>
+            <tr>
+                <td style="padding: 5px;">{{ tran("{station_departure}") }}</td>
+                <td style="padding: 5px;">{{ tran("{kms}") }}</td>
+                <td style="padding: 5px;">{{ tran("{site_arrival}") }}</td>
+                <td style="padding: 5px;">{{ tran("{hours}") }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 5px;"><br><br></td>
+                <td style="padding: 5px;"></td>
+                <td style="padding: 5px;"></td>
+                <td style="padding: 5px;"></td>
+            </tr>
+            <tr>
+                <td style="padding: 5px;">{{ tran("{station_arrival}") }}</td>
+                <td style="padding: 5px;">{{ tran("{kms}") }}</td>
+                <td style="padding: 5px;">{{ tran("{site_departure}") }}</td>
+                <td style="padding: 5px;">&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="padding: 5px;"><br><br></td>
+                <td style="padding: 5px;"></td>
+                <td style="padding: 5px;"></td>
+                <td style="padding: 5px;"></td>
+            </tr>
+            <tr>
+                <td colspan=4 style="padding: 5px;">{{ tran("{surcharges_by_pricelists}") }}:</td>
+            </tr>
+            <tr>
+                <td colspan=4 style="padding: 5px;">
+                    {% for s in record.surcharges %}
+                        <div class="row">
+                            <div class="my-2 ml-3 d-flex col-1">
+                                <div class="border mr-2 px-3 pt-2 pb-0">{{ s.amount }}</div>
+                                <div class="py-2 mr-2">
+                                    {% if s.unit_name %}{{ s.unit_name }}{% else %}x{% endif %}
+                                </div>
+                            </div>
+                            <div class="my-2 ml-3 py-2 col-6">
+                                {{ s.name }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+
+        <!-- naive separator -->
+        <div class="mb-5">&nbsp;</div>
+
+        <!-- Footer table -->
+        <table style="width:100%;" class="table table-bordered">
+          <tr>
+            <td style="width:70%;">
+                <div class="small"><b>{{ tran("{machine_operator}") }}</b></div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="border-top-dashed text-center small">{{ record.car_driver | hide_none }}</div>
+            </td>
+            <td rowspan="2" style="width:30%;">
+                <div class="small"><b>{{ tran("{took_over}") }}</b></div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="border-top-dashed text-center small">{{ tran("{signature_hand}") }}</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="small italic" style="white-space: pre-wrap">{{ setup.customer_consent_pump | hide_none }}</td>
+          </tr>
+        </table>
+
+        {% include 'printouts/_footer.html' %}
+
+    </div>
+
+  </body>
+</html>

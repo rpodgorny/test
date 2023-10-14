@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ tran("{Material stock}") }}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="container" id="main">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+        <div class="row mb-2 mt-3">
+
+        <div class="col-6">
+          <b>{{ setup.company_name }}</b>
+          <div class="small">
+              {{ setup.company_address | hide_none }}<br>
+              {{ setup.company_zip | hide_none }}
+              {{ setup.company_city | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ setup.company_idnum | hide_none }}
+              {{ tran("{Vat ID}") }}: {{ setup.company_vat_idnum | hide_none }}<br>
+              {{ setup.company_legal | hide_none }}
+          </div>
+        </div>
+
+        <div class="col-6">
+            <h3 class="text-right">{{ tran("{Material stock}") }}</h3>
+        </div>
+
+        </div>
+
+        <!-- Production facility -->
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="small">
+                  {{ setup.facility_name | hide_none }}<br>
+                  {{ setup.facility_address | hide_none }}<br>
+                  {{ setup.facility_zip | hide_none }}
+                  {{ setup.facility_city | hide_none }}<br>
+                  {{ setup.facility_code | hide_none }}
+              </div>
+          </div>
+          <div class="col-4">
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{date range}") }}</b><br>
+              {{date_from}} - {{date_to}}
+          </div>
+        </div>
+
+        <!-- materials -->
+            <table class="w-100 mb-4 small table table-bordered table-striped">
+                <thead class="bold">
+                    <td width="40%">{{ tran("{Material}") }}</td>
+                    <td class="text-right" width="15%">{{ tran("{initial_stock}") }}</td>
+                    <td class="text-right" width="15%">{{ tran("{received}") }}</td>
+                    <td class="text-right" width="15%">{{ tran("{consumed}") }}</td>
+                    <td class="text-right" width="15%">{{ tran("{stock_status}") }}</td>
+                </thead>
+                {% for m in materials %}
+                <tr>
+                    <td class="py-1">{% if m.long_name is none %}{{ m.name }}{% else %}{{ m.long_name }}{% endif %}</td>
+                    <td class="py-1 text-right">{{ m.stock_initial | round_me(2) }} {{m.unit | hide_none }}</td>
+                    <td class="py-1 text-right">{{ m.stock_positive | round_me(2) }} {{m.unit | hide_none}}</td>
+                    <td class="py-1 text-right">{{ m.stock_negative | round_me(2) }} {{m.unit | hide_none}}</td>
+                    <td class="py-1 text-right bold">{{ m.stock_sum | round_me(2) }} {{m.unit | hide_none }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+      <div class="row printout-mini">
+          <div class="col-5"></div>
+          <div class="col-7 text-right">{{ tran("{asterix_footer}") }} {{date_now}}</div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,245 @@
+<!--
+    Invoice printout. Available variables:
+
+        record      ... <class Order> order
+        setup       ... <class Setup> setup
+
+    TODO REF: unfinished migration to rounded() and if_none() - from round() and hide_none
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ tran("{invoice_printout_no}") }} {{record.invoice_number | hide_none}}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="container" id="main">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+        <div class="row mb-3 mt-3">
+
+            <div class="col-4">
+              <b>{{ setup.company_name }}</b>
+              <div class="">
+                  {{ setup.company_address | hide_none }}<br>
+                  {{ setup.company_zip | hide_none }}
+                  {{ setup.company_city | hide_none }}<br>
+                  {{ tran("{company_idnum}") }}: {{ setup.company_idnum | hide_none }}
+                  {{ tran("{Vat ID}") }}: {{ setup.company_vat_idnum | hide_none }}<br>
+                  {{ setup.company_legal | hide_none }}
+              </div>
+            </div>
+
+            <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="">
+                  {{ setup.facility_name | hide_none }}<br>
+                  {{ setup.facility_address | hide_none }}<br>
+                  {{ setup.facility_zip | hide_none }}
+                  {{ setup.facility_city | hide_none }}<br>
+                  {{ setup.facility_code | hide_none }}
+              </div>
+              <div class="mt-2">
+                  <b>{{ tran("{Contract}") }}:</b> {{ record.contract_name | hide_none }}
+              </div>
+            </div>
+
+            <div class="col-4 text-right">
+                <h3 class="mb-0">{{ tran("{invoice_printout_no}") }} {{record.invoice_number | hide_none}}</h3>
+                {{ tran("{invoice_belongs_to_ds}") }} {{record.auto_number | hide_none}}<br>
+                <br>
+                <b>{{ tran("{datetime_tax}") }}</b><br>
+                {{record.t | customized_timestamp}}
+            </div>
+
+        </div>
+
+        <!-- Customer -->
+        <div class="row border mb-2 py-2">
+          <div class="col-4">
+              <b>{{ tran("{customer}") }}</b><br>
+              {{ record.customer | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ record.customer_record.company_idnum | hide_none }}<br>
+              {{ tran("{Vat ID}") }}: {{ record.customer_record.vat_idnum | hide_none }}<br>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{construction_site}") }}</b><br>
+              {{record.construction_site | hide_none }}
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{vehicle}") }}</b><br>
+              {% if record.deliveries %}
+                {{ record.deliveries[0].car_registration_number }}
+                {% if record.deliveries[0].car_car_type %}
+                    ({{ record.deliveries[0].car_car_type }})
+                {% endif %}
+              {% endif %}
+          </div>
+        </div>
+
+        {% include 'printouts/_product_header.html' %}
+
+        <!-- Product data -->
+        <div class="row mb-2">
+          <div class="col-2">
+              <h3>{{record.volume}}&nbsp;m<sup>3</sup></h3>
+          </div>
+          <div class="col-6">
+              <b>{{record.r_description | hide_none }}</b>
+          </div>
+          <div class="col-2">
+              <b>{{record.r_name}}</b>
+          </div>
+          <div class="col-2">
+              <b>{{record.r_number | hide_none }}</b>
+          </div>
+        </div>
+
+        <!-- prices -->
+        <div class="mt-4">
+            <table style="width:100%;" class="table table-bordered">
+                <tr class="bold">
+                    <td class="py-1">{{ tran("{item}") }}</td>
+                    <td class="py-1">{{ tran("{amount}") }}</td>
+                    <td class="py-1">{{ tran("{unit}") }}</td>
+                    <td class="py-1 text-right">{{ tran("{price_per_unit}") }}</td>
+                    <td class="py-1 text-right">{{ tran("{price_total}") }}</td>
+                    <td class="py-1">{{ tran("{vat_rate}") }}</td>
+                    <td class="py-1 text-right">{{ tran("{vat}") }}</td>
+                    <td class="py-1 text-right">{{ tran("{price_with_vat}") }}</td>
+                </tr>
+                <tr>
+                    <td style="width:20%;" class="py-1">{{ tran("{price_concrete}").capitalize() }}:</td>
+                    <td class="py-1">{{record.volume}}</td>
+                    <td class="py-1">m<sup>3</sup></td>
+                    <td class="py-1 text-right">{{ record.r_price | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.calc_price_concrete() | round_default | hide_none }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1">{{ setup.vat_rate | hide_none }}%</td>
+                    <td class="py-1 text-right">{{ record.calc_price_concrete() | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.calc_price_concrete() | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                {% if record.price_concrete_correction %}
+                <tr>
+                    <td style="width:20%;" class="py-1">{{ tran("{price_concrete_correction}").capitalize() }}:</td>
+                    <td class="py-1">1</td>
+                    <td class="py-1">x</td>
+                    <td class="py-1 text-right">{{ record.price_concrete_correction | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.price_concrete_correction | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1">{{ setup.vat_rate | hide_none }}%</td>
+                    <td class="py-1 text-right">{{ record.price_concrete_correction | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.price_concrete_correction | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                {% endif %}
+                {% if (record.price_transport != None) and (record.price_transport > 0) %}
+                    <tr>
+                        <td style="width:20%;" class="py-1">{{ tran("{transport}") }}:</td>
+                        <td class="py-1">1</td>
+                        <td class="py-1">x</td>
+                        <td class="py-1 text-right">{{ record.price_transport | round_default | hide_none }}&nbsp;{{ setup.currency_symbol}}</td>
+                        <td class="py-1 text-right">{{ record.price_transport | round_default | hide_none }}&nbsp;{{ setup.currency_symbol}}</td>
+                        <td class="py-1">{{ setup.vat_rate | hide_none}}%</td>
+                        <td class="py-1 text-right">{{ record.price_transport | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                        <td class="py-1 text-right">{{ record.price_transport | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    </tr>
+                {% endif %}
+                {% for s in record.surcharges %}
+                <tr>
+                    <td class="py-1">{{ tran("{surcharge}") }} - {{ s.name }}:</td>
+                    {% if s.price_type == 0 %} <!-- fixed price -->
+                        <td class="py-1">1</td>
+                        <td class="py-1">x</td>
+                        <td class="py-1 text-right">{{ s.price_total | round_default | hide_none }}&nbsp;{{ setup.currency_symbol}}</td>
+                    {% endif %}
+                    {% if s.price_type == 1 %} <!-- per m3 -->
+                        <td class="py-1">{{ record.volume }}</td>
+                        <td class="py-1">m<sup>3</sup></td>
+                        <td class="py-1 text-right">{{ s.price | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    {% endif %}
+                    {% if s.price_type == 2 %} <!-- per other unit -->
+                        <td class="py-1">{{ s.amount }}</td>
+                        <td class="py-1">{{ s.unit_name }}</td>
+                        <td class="py-1 text-right">{{ s.price | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    {% endif %}
+                    <td class="py-1 text-right">
+                        {{ s.price_total | round_default | hide_none }}&nbsp;{{ setup.currency_symbol }}
+                    </td>
+                    <td class="py-1">{{ setup.vat_rate | hide_none }}%</td>
+                    <td class="py-1 text-right">{{ s.price_total | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ s.price_total | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                {% endfor %}
+                {% if record.price_surcharges_correction %}
+                <tr>
+                    <td style="width:20%;" class="py-1">{{ tran("{price_surcharges_correction}") }}:</td>
+                    <td class="py-1">1</td>
+                    <td class="py-1">x</td>
+                    <td class="py-1 text-right">{{ record.price_surcharges_correction | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.price_surcharges_correction | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1">{{ setup.vat_rate | hide_none }}%</td>
+                    <td class="py-1 text-right">{{ record.price_surcharges_correction | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.price_surcharges_correction | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                {% endif %}
+                <tr class="bold">
+                    <td colspan="4" style="width:20%;" class="py-1">{{ tran("{total}") }}:</td>
+                    <td class="py-1 text-right">{{ record.price_total | round_default | hide_none }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1">{{ setup.vat_rate | hide_none }}%</td>
+                    <td class="py-1 text-right">{{ record.price_total | vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                    <td class="py-1 text-right">{{ record.price_total | with_vat(setup.vat_rate) | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                <tr class="italic">
+                    <td colspan="7" style="width:20%;" class="py-1">{{ tran("{rounding}") }}:</td>
+                    <td class="py-1 text-right">{{ record.calc_rounding() | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+                <tr class="bold">
+                    <td colspan="7" style="width:20%;" class="py-1">{{ tran("{grand_total_to_be_paid}") }}:</td>
+                    <td class="py-1 text-right">{{ record.price_grand_total | round_default }}&nbsp;{{ setup.currency_symbol}}</td>
+                </tr>
+            </table>
+
+            <div class="pl-4">
+                {{ tran("{payment_type}") }}: {{ tran("{" + record.get_payment_type_name() + "}") }}
+            </div>
+        </div>
+
+        <!-- naive separator -->
+        <div class="mb-4">&nbsp;</div>
+
+        <!-- Footer table 2 -->
+        <table style="width:100%;" class="table table-bordered">
+          <tr>
+            <td style="width:50%;">
+                <div class=""><b>{{ tran("{issued_by}") }}</b></div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="border-top-dashed text-center">{{ record.audit_changed_by | hide_none }}</div>
+            </td>
+            <td style="width:50%;">
+                <div class=""><b>{{ tran("{took_over}") }}</b></div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="mb-6">&nbsp;</div>
+                <div class="border-top-dashed text-center">{{ tran("{signature_hand}") }}</div>
+            </td>
+          </tr>
+        </table>
+
+        {% include 'printouts/_footer.html' %}
+
+    </div>
+
+  </body>
+</html>

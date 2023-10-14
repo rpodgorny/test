@@ -1,0 +1,46 @@
+[Order]
+User=abc
+ConstructionSite=q
+RecipeId=7
+Volume=20
+VehicleIdentificationNumber=aag
+Comment=abcd
+Time=17:01:09
+Date=07.03.2022
+
+[Recipe]
+Number=
+Name=C16/20 S4 8/16
+Class=S4
+Consistency_Class=S4
+Comment=
+K_ratio=0.0
+Batch_Volume_Limit=0.8
+Mixing_Duration=18.0
+Mixer_Opening_Duration=7
+Mixer_SemiOpening_Duration=10
+Cement1_Name=42.5 B-S
+Cement1_Long_Name=42.5 B-S
+Cement1_Weight=270.0
+Cement1_Delay=3.0
+Water1_Name=Èistá
+Water1_Long_Name=Èistá
+Water1_Weight=0.0
+Water1_Delay=1.0
+Water2_Name=Kalová
+Water2_Long_Name=Kalová
+Water2_Weight=160.0
+Water2_Delay=0.0
+AdMixture1_Name=Stachepl
+AdMixture1_Long_Name=Stacheplast
+AdMixture1_Weight=2.5
+AdMixture1_Delay=1.0
+Aggregate1_Name=0/4
+Aggregate1_Long_Name=00/44
+Aggregate1_Weight=860.0
+Aggregate1_Delay=
+Aggregate2_Name=8/16
+Aggregate2_Long_Name=8/16
+Aggregate2_Weight=860.0
+Aggregate2_Delay=
+

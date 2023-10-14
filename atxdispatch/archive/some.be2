@@ -1,0 +1,49 @@
+[Order]
+RecipeId=1
+Volume=10.0
+User=Doprastav a.s., Prefa Senec
+ConstructionSite=abc constructions
+Comment=curl produced
+VehicleIdentificationNumber=4AA 5811
+Time=12:45:09
+Date=25.01.2022
+
+[Recipe]
+Class=
+Water1_Name=SW00001
+Water1_Long_Name=SW 0001/10
+Water1_Weight=400.0
+Water1_Delay=
+Water2_Name=SW00001
+Water2_Long_Name=SW 0001/10
+Water2_Weight=410.0
+Water2_Delay=
+Water3_Name=SW00001
+Water3_Long_Name=SW 0001/10
+Water3_Weight=400.0
+Water3_Delay=
+Water4_Name=SW00001
+Water4_Long_Name=SW 0001/10
+Water4_Weight=400.0
+Water4_Delay=
+Water5_Name=SW00001
+Water5_Long_Name=SW 0001/10
+Water5_Weight=400.0
+Water5_Delay=
+AdMixture1_Name=C 0/2
+AdMixture1_Long_Name=C 00/22
+AdMixture1_Weight=400.0
+AdMixture1_Delay=
+Aggregate1_Name=0/4
+Aggregate1_Long_Name=00/44
+Aggregate1_Weight=400.0
+Aggregate1_Delay=
+Water6_Name=CW554
+Water6_Long_Name=458C 040/44
+Water6_Weight=400.0
+Water6_Delay=
+Cement1_Name=C 2/6
+Cement1_Long_Name=C 0022/41124
+Cement1_Weight=400.0
+Cement1_Delay=
+

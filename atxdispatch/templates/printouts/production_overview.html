@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="w-100 p-4">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+
+        <!-- Production facility -->
+        <div class="row mb-2 mt-3">
+
+            <div class="col-6">
+              <b>{{ setup.company_name }}</b>
+              <div class="">
+                  {{ if_none(setup.company_address, "") }}<br>
+                  {{ if_none(setup.company_zip, "") }}
+                  {{ if_none(setup.company_city, "") }}<br>
+                  {{ tran("{company_idnum}") }}: {{ if_none(setup.company_idnum, "") }}
+                  {{ tran("{Vat ID}") }}: {{ if_none(setup.company_vat_idnum, "") }}<br>
+                  {{ if_none(setup.company_legal, "") }}
+              </div>
+            </div>
+
+            <div class="col-6 text-right">
+                <h3>{{ title }}</h3>
+                <div class="italic">{{ note }}</div>
+            </div>
+
+        </div>
+
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="small">
+                  {{ if_none(setup.facility_name, "") }}<br>
+                  {{ if_none(setup.facility_address, "") }}<br>
+                  {{ if_none(setup.facility_zip, "") }}
+                  {{ if_none(setup.facility_city, "") }}<br>
+                  {{ if_none(setup.facility_code, "") }}
+              </div>
+          </div>
+          <div class="col-4">
+          </div>
+          <div class="col-4">
+              <table>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{Since}") }}:</b></td>
+                      <td class="px-2">{{date_from}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{Until}") }}:</b></td>
+                      <td class="px-2">{{date_to}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{customer}") }}:</b></td>
+                      <td class="px-2">{{ customer_str }}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{construction_site}") }}:</b></td>
+                      <td class="px-2">{{site}}</td>
+                  </tr>
+              </table>
+          </div>
+        </div>
+
+        <!-- data -->
+        <table class="mb-4 table">
+            <thead class="bold">
+                <td>{{ tran("{customer}") }}</td>
+                <td>{{ tran("{construction_site}") }}</td>
+                <td>{{ tran("{recipe}") }}</td>
+                <td>{{ tran("{invoice_printout_no}") }}</td>
+                <td>{{ tran("{Sheet}") }}</td>
+                <td>{{ tran("{t_human}") }}</td>
+                <td>{{ tran("{payment_type}") }}</td>
+                <td>{{ tran("{volume}") }}</td>
+                <td class="text-right">{{ tran("{price_concrete}") }}</td>
+                <td class="text-right">{{ tran("{price_shipping}") }}</td>
+                <td class="text-right">{{ tran("{price_services}") }}</td>
+                <td class="text-right">{{ tran("{price_sum}") }}</td>
+            </thead>
+            {% for customer_name, c in customers.items() %}
+                <tr>
+                    <td colspan="9">{{ c.str }}</td>
+                </tr>
+                {% for site_name, concretes in c["items"].items() %}
+                    <tr>
+                        <td></td>
+                        <td colspan="10">{{ if_none(site_name, "---") }}</td>
+                    </tr>
+                    {% for concrete_name, orders in concretes["items"].items() %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td colspan="9">{{ concrete_name }}</td>
+                    </tr>
+                        {% for o in orders["items"] %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ if_none(o.invoice_number, "---") }}</td>
+                            <td>{{ o.auto_number }}</td>
+                            <td>{{ o.t | customized_timestamp }}</td>
+                            <td>{{ tran("{" + o.get_payment_type_name() + "}") }}</td>
+                            <td>{{ rounded(o.volume, 3) }}&nbsp;m<sup>3</sup></td>
+                            <td class="text-right">{{ o.price_concrete | round_default }}</td>
+                            <td class="text-right">{{ o.price_transport_clean | round_default }}</td>
+                            <td class="text-right">{{ o.price_surcharges | round_default }}</td>
+                            <td class="text-right">{{ o.calc_price() | round_default }}</td>
+                        </tr>
+                        {% endfor %} <!-- orders -->
+                        <tr class="bold">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td colspan="4">{{ tran("{total}") }} {{concrete_name}} </td>
+                            <td>{{ rounded(orders["sum"]["volume"], 3) }}&nbsp;m<sup>3</sup></td>
+                            <td class="text-right">{{ orders["sum"]["price_concrete"] | round_default }}</td>
+                            <td class="text-right">{{ orders["sum"]["price_transport"] | round_default }}</td>
+                            <td class="text-right">{{ orders["sum"]["price_surcharges"] | round_default }}</td>
+                            <td class="text-right">{{ orders["sum"]["price"] | round_default}}</td>
+                        </tr>
+                    {% endfor %} <!-- sites -->
+                    <tr class="bold">
+                        <td></td>
+                        <td></td>
+                        <td colspan="5">{{ tran("{total}") }} {{ if_none(site_name, "---") }} </td>
+                        <td>{{ rounded(concretes["sum"]["volume"], 3) }}&nbsp;m<sup>3</sup></td>
+                        <td class="text-right">{{ concretes["sum"]["price_concrete"] | round_default }}</td>
+                        <td class="text-right">{{ concretes["sum"]["price_transport"] | round_default }}</td>
+                        <td class="text-right">{{ concretes["sum"]["price_surcharges"] | round_default }}</td>
+                        <td class="text-right">{{ concretes["sum"]["price"] | round_default }}</td>
+                    </tr>
+                {% endfor %} <!-- customers -->
+                    <tr class="bold">
+                        <td></td>
+                        <td colspan="6">{{ tran("{total}") }} {{customer_name}} </td>
+                        <td>{{ rounded(c["sum"]["volume"], 3) }}&nbsp;m<sup>3</sup></td>
+                        <td class="text-right">{{ c["sum"]["price_concrete"] | round_default }}</td>
+                        <td class="text-right">{{ c["sum"]["price_transport"] | round_default }}</td>
+                        <td class="text-right">{{ c["sum"]["price_surcharges"] | round_default }}</td>
+                        <td class="text-right">{{ c["sum"]["price"] | round_default }}</td>
+                    </tr>
+            {% endfor %}
+                <tr class="">
+                    <td colspan="1"></td>
+                </tr>
+                <tr class="bold bg-light italic">
+                    <td colspan="7">{{ tran("{total}") }}</td>
+                    <td>{{ rounded(totals["volume"], 3) }}&nbsp;m<sup>3</sup></td>
+                    <td class="text-right">{{ totals["price_concrete"] | round_default }}</td>
+                    <td class="text-right">{{ totals["price_transport"] | round_default }}</td>
+                    <td class="text-right">{{ totals["price_surcharges"] | round_default }}</td>
+                    <td class="text-right">{{ totals["price"] | round_default }}</td>
+                </tr>
+                <tr class="">
+                    <td colspan="1"></td>
+                </tr>
+                <tr class="bold bg-light italic">
+                    <td colspan="11">{{ tran("{vat}") }} {{ setup.vat_rate }}%</td>
+                    <td class="text-right">{{ supertotal_vat | round_default  }}</td>
+                </tr>
+                <tr class="bold bg-light italic">
+                    <td colspan="11">{{ tran("{price_with_vat}") }}</td>
+                    <td class="text-right">{{ supertotal_with_vat | round_default }}</td>
+                </tr>
+        </table>
+
+      <div class="row printout-mini">
+          <div class="col-5">{{ tran("{ORIGINAL}") }}</div>
+          <div class="col-7 text-right">{{ tran("{asterix_footer}") }} {{ date_now }}</div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

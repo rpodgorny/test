@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ tran("{Production by orders}") }}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="w-100 p-4">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+        <div class="row mb-2 mt-3">
+
+        <div class="col-6">
+          <b>{{ setup.company_name }}</b>
+          <div class="small">
+              {{ setup.company_address | hide_none }}<br>
+              {{ setup.company_zip | hide_none }}
+              {{ setup.company_city | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ setup.company_idnum | hide_none }}
+              {{ tran("{Vat ID}") }}: {{ setup.company_vat_idnum | hide_none }}<br>
+              {{ setup.company_legal | hide_none }}
+          </div>
+        </div>
+
+        <div class="col-6">
+            <h3 class="text-right">{{ tran("{Production by orders}") }}</h3>
+        </div>
+
+        </div>
+
+        <!-- Production facility -->
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="small">
+                  {{ setup.facility_name | hide_none }}<br>
+                  {{ setup.facility_address | hide_none }}<br>
+                  {{ setup.facility_zip | hide_none }}
+                  {{ setup.facility_city | hide_none }}<br>
+                  {{ setup.facility_code | hide_none }}
+              </div>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{produced total}") }}</b><br>
+              {{total_production}}&nbsp;m<sup>3</sup>
+          </div>
+          <div class="col-4">
+              <table>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{Since}") }}:</b></td>
+                      <td class="px-2">{{date_from}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{Until}") }}:</b></td>
+                      <td class="px-2">{{date_to}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{customer}") }}:</b></td>
+                      <td class="px-2">{{customer}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{construction_site}") }}:</b></td>
+                      <td class="px-2">{{site}}</td>
+                  </tr>
+                  <tr>
+                      <td class="text-right"><b>{{ tran("{recipe}") }}:</b></td>
+                      <td class="px-2">{{recipe}}</td>
+                  </tr>
+              </table>
+          </div>
+        </div>
+
+        <!-- batches -->
+        <table class="mb-4 small table table-bordered table-striped">
+            <thead class="bold">
+                <td>{{ tran("{t_human}") }}</td>
+                <td>{{ tran("{customer}") }}</td>
+                <td>{{ tran("{construction_site}") }}</td>
+                <td>{{ tran("{registration_number}") }}</td>
+                <td>{{ tran("{recipe}") }}</td>
+                <td>m<sup>3</sup></td>
+                <td>{{ tran("{sequence}") }}</td>
+                <td>m<sup>3</sup> {{ tran("{tot.}") }}</td>
+                {% for name in material_names %}
+                    <td class="text-right">{{ name }}</td>
+                {% endfor %}
+            </thead>
+            {% for b in batches %}
+            <tr>
+                <td>{{ b.production_start_t | customized_timestamp }}</td>
+                <td>{{ b.order.customer | hide_none }}</td>
+                <td>{{ b.order.construction_site | hide_none }}</td>
+                <td>{{ b.order.deliveries[0].car_registration_number }}</td>
+                <td>{{ b.order.r_name }}</td>
+                <td>{{ b.volume | round_me(2) }}</td>
+                <td>{{ b.batch_number }}/{{ b.batch_count }}</td>
+                <td>{{ b.order.volume }}</td>
+                {% for name in material_names %}
+                    <td class="text-right">{{ b.consumption[name] | hide_none | round_me(3) }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+
+      <div class="row printout-mini">
+          <div class="col-5">{{ tran("{ORIGINAL}") }}</div>
+          <div class="col-7 text-right">{{ tran("{asterix_footer}") }} {{date_now}}</div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

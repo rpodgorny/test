@@ -1,0 +1,93 @@
+/* TODO: what? */
+.right {
+  text-align: center;
+}
+
+.wid {
+  width: 90vw;
+}
+
+TABLE.tbl {
+  border-collapse: collapse;
+  position: relative;
+  align-self: center;
+  align-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tbl TH {
+  color: rgba(26, 72, 109, 0.979);
+  font-size: calc(1vw + 1vh);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-style: normal;
+  text-transform: uppercase;
+  cursor: text;
+  align-self: center;
+  align-content: center;
+  align-items: center;
+}
+
+.tbl TR {
+  cursor: pointer;
+  font-size: calc(1vw + 1vh);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-style: normal;
+  align-self: center;
+  align-content: center;
+  align-items: center;
+}
+
+.tbl TD {
+  border: 2px solid rgba(26, 72, 109, 0.493);
+  padding: 10px 30px;
+  align-self: center;
+  align-content: center;
+  align-items: center;
+}
+
+
+.clicked:target {
+  background-color: aquamarine;
+}
+
+.clicked {
+  background-color: aquamarine;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.small {
+    font-size: 80%;
+}
+
+.printout-mini {
+    font-size: 60%;
+}
+
+.border-top-dashed {
+    border-top: 1px dashed black;
+}
+
+.bigger {
+    font-size: 120%;
+}
+
+.big-3 {
+    font-size: 180%;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.ellipsis {
+   text-overflow: ellipsis;
+}

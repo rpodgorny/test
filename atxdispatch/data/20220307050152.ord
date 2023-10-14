@@ -1,0 +1,46 @@
+[Order]
+User=bb
+ConstructionSite=1
+RecipeId=17
+Volume=1
+VehicleIdentificationNumber=1
+Comment=1
+Time=17:01:52
+Date=07.03.2022
+
+[Recipe]
+Number=
+Name=C25/30 PODLAHOVY
+Class=S4
+Consistency_Class=S4
+Comment=
+K_ratio=0.0
+Batch_Volume_Limit=1
+Mixing_Duration=20.0
+Mixer_Opening_Duration=7
+Mixer_SemiOpening_Duration=10
+Cement1_Name=42.5 B-S
+Cement1_Long_Name=42.5 B-S
+Cement1_Weight=320.0
+Cement1_Delay=3.0
+Water1_Name=Èistá
+Water1_Long_Name=Èistá
+Water1_Weight=160.0
+Water1_Delay=4.0
+AdMixture1_Name=Stachepl
+AdMixture1_Long_Name=Stacheplast
+AdMixture1_Weight=3.2
+AdMixture1_Delay=4.0
+Aggregate1_Name=0/4
+Aggregate1_Long_Name=00/44
+Aggregate1_Weight=810.0
+Aggregate1_Delay=
+Aggregate2_Name=8/16
+Aggregate2_Long_Name=8/16
+Aggregate2_Weight=750.0
+Aggregate2_Delay=
+Aggregate3_Name=4/8
+Aggregate3_Long_Name=10/44
+Aggregate3_Weight=120.0
+Aggregate3_Delay=
+

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ tran("{Batch protocol}") }} {{record.auto_number}}</title>
+
+    <!-- Note: in order to work in reverse proxy, we cannot use absolute path beginning with /
+         Solution with .. is slightly hacky, however is (waaay) simplest and works with no consequences
+         as long as printouts have address like <server>/<anything>/Order/3
+    -->
+    <link href="../../static/css/style.css" rel="stylesheet"/>
+
+    <!-- 3rd party lib: bootstrap -->
+    <link href="../../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+  </head>
+
+  <body {% if setup.auto_print %}onload="window.print()"{% endif %}>
+
+    <div class="container" id="main">
+
+        {% include 'printouts/_logo.html' %}
+
+        <!-- Head -->
+        <div class="row mb-2 mt-3">
+
+        <div class="col-6">
+          <b>{{ setup.company_name }}</b>
+          <div class="small">
+              {{ setup.company_address | hide_none }}<br>
+              {{ setup.company_zip | hide_none }}
+              {{ setup.company_city | hide_none }}<br>
+              {{ tran("{company_idnum}") }}: {{ setup.company_idnum | hide_none }}
+              {{ tran("{Vat ID}") }}: {{ setup.company_vat_idnum | hide_none }}<br>
+              {{ setup.company_legal | hide_none }}
+          </div>
+        </div>
+
+        <div class="col-6">
+            <h3 class="text-right">{{ tran("{batch_protocol_title}") }}</h3>
+            <div class="big text-right">{{ tran("{for_sheet_no}") }} {{record.auto_number}}</div>
+        </div>
+
+        </div>
+
+        <!-- Production facility -->
+        <div class="row border mb-2">
+          <div class="col-4">
+              <b>{{ tran("{facility}") }}</b>
+              <div class="small">
+                  {{ setup.facility_name | hide_none }}<br>
+                  {{ setup.facility_address | hide_none }}<br>
+                  {{ setup.facility_zip | hide_none }}
+                  {{ setup.facility_city | hide_none }}<br>
+                  {{ setup.facility_code | hide_none }}
+              </div>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{certification}") }}</b>
+              <div style="white-space: pre-wrap">{{ setup.certification_text | hide_none }}</div>
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{datetime_tax}") }}</b><br>
+              {{record.t | customized_timestamp}}
+          </div>
+        </div>
+
+        <!-- Customer -->
+        <div class="row border mb-3">
+          <div class="col-4">
+              <b>{{ tran("{customer}") }}</b><br>
+              {{ record.customer | hide_none }}
+          </div>
+          <div class="col-4">
+              <b>{{ tran("{construction_site}") }}</b><br>
+              {{ record.construction_site | hide_none }}
+          </div>
+        </div>
+
+        {% include 'printouts/_product_header.html' %}
+
+        <!-- Product data -->
+        <div class="row mb-2">
+          <div class="col-2">
+              <h3>{{record.volume}} m3</h3>
+          </div>
+          <div class="col-6">
+              <b>{{ record.r_description | hide_none }}</b>
+          </div>
+          <div class="col-2">
+              <b>{{record.r_name}}</b>
+          </div>
+          <div class="col-2">
+              <b>{{ record.r_number | hide_none }}</b>
+          </div>
+        </div>
+
+        <!-- materials -->
+        <div class="ml-0">
+            <table style="width:100%;" class="">
+            {% for batch in batches %}
+                <tr class="">
+                    <td>{{ tran("{batch}") }}</td>
+                    <td>{{ tran("{amount}") }}</td>
+                    <td>{{ tran("{mixing_time}") }}</td>
+                    <td>{{ tran("{consistency}") }}</td>
+                    <td>{{ tran("{water_correction}") }}</td>
+                    <td>{{ tran("{temp_cement}") }}</td>
+                    <td>{{ tran("{production_end}") }}</td>
+                </tr>
+                <tr class="border-bottom">
+                    <td>{{ batch.batch_number }} / {{ batch.batch_count }}</td>
+                    <td>{{ batch.volume | round_me(2)}}&nbsp;m<sup>3</sup></td>
+                    <td>{{ batch.mixing_duration | round_me(1)}} sec</td>
+                    <td>{{ batch.consistency | round_me(2)}}</td>
+                    <td>{% if batch.water_correction_e1 is none %}{{ batch.water_correction_rq | round_me(2) }}{% else %}{{ batch.water_correction_e1 | round_me(2) }}{% endif %}</td>
+                    <td>{{ batch.cement_temperature | hide_none | round_me(2) }} ℃</td>
+                    <td>{{ batch.production_end_human }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        <table style="width:100%;" class="ml-3 mb-4 small">
+                            <thead class="bold">
+                                <td width="40%">{{ tran("{Material}") }}</td>
+                                <td width="15%" class="text-right">{{ tran("{from_recipe}") }}</td>
+                                <td width="15%" class="text-right">{{ tran("{requested}") }}</td>
+                                <td width="15%" class="text-right">{{ tran("{weighted}") }}</td>
+                                <td width="15%" class="text-right">{{ tran("{difference}") }}</td>
+                            </thead>
+                            {% for m in batch.materials %}
+                            <tr>
+                                <td>{{m.material.name}}</td>
+                                <td class="text-right">{{ m.amount_recipe | round_me(2) }} {{m.material.unit | hide_none }}</td>
+                                <td class="text-right">{{ m.amount_rq | round_me(2) }} {{m.material.unit | hide_none }}</td>
+                                <td class="text-right">{{ m.amount_e1 | round_me(2) }} {{m.material.unit | hide_none }}</td>
+                                <td class="text-right">{{ (m.amount_e1 - m.amount_rq) | round_me(2) }} {{m.material.unit | hide_none }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            <tr class="bold border-bottom">
+                <td colspan="6">Celkem</td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <table style="width:100%;" class="ml-3 mb-4 small">
+                        <thead class="bold">
+                            <td width="40%">{{ tran("{Material}") }}</td>
+                            <td width="15%" class="text-right">{{ tran("{from_recipe}") }}</td>
+                            <td width="15%" class="text-right">{{ tran("{requested}") }}</td>
+                            <td width="15%" class="text-right">{{ tran("{weighted}") }}</td>
+                            <td width="15%" class="text-right">{{ tran("{difference}") }}</td>
+                        </thead>
+                        {% for t in totals %}
+                        <tr>
+                            <td>{{t.name}}</td>
+                            <td class="text-right">{{ t.amount_recipe | round_me(2) }} {{t.unit | hide_none }}</td>
+                            <td class="text-right">{{ t.amount_rq | round_me(2) }} {{t.unit | hide_none }}</td>
+                            <td class="text-right">{{ t.amount_e1 | round_me(2) }} {{t.unit | hide_none }}</td>
+                            <td class="text-right">{{ (t.amount_e1 - t.amount_rq) | round_me(2) }} {{t.unit | hide_none }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+
+            </table>
+        </div>
+
+        <!-- naive separator -->
+        <div class="mb-5">&nbsp;</div>
+
+        {% include 'printouts/_footer.html' %}
+
+    </div>
+
+  </body>
+</html>
